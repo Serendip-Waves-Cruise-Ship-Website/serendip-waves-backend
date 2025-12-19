@@ -1,0 +1,44 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Environment files
+.env
+.env.local
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+access_log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Uploaded images (optional - uncomment if you don't want to commit uploads)
+# ship_images/*
+# !ship_images/.gitkeep
+# meal_images/*
+# !meal_images/.gitkeep
+# facility_images/*
+# !facility_images/.gitkeep
+
+# PHPUnit
+/phpunit.xml
+.phpunit.result.cache
+
+# Database backups
+*.sql.gz
+*.sql.bak

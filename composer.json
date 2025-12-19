@@ -1,0 +1,20 @@
+{
+    "name": "serendip-waves/backend",
+    "description": "PHP/MySQL RESTful API for Serendip Waves Cruise Management System",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "SerendipWaves\\": "Main Classes/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Serendip Waves Team"
+        }
+    ]
+}
