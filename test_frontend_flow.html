@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend Simulation Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Frontend API Test</h1>
+    <div id="output"></div>
+    <div id="image-test"></div>
+
+    <script>
+        const output = document.getElementById('output');
+        const imageTest = document.getElementById('image-test');
+        
+        async function testFlow() {
+            const destination = 'Spain';
+            
+            output.innerHTML += '<h2>Testing Spain Booking Flow</h2>';
+            
+            // 1. Get itineraries
+            output.innerHTML += '<h3>1. Fetching Itineraries...</h3>';
+            const itinerariesResponse = await axios.get('http://localhost/Project-I/backend/getItineraries.php');
+            output.innerHTML += `<pre>Total itineraries: ${itinerariesResponse.data.length}</pre>`;
+            
+            const matchedItinerary = itinerariesResponse.data.find(
+                item => item.route === destination || item.destination === destination
+            );
+            output.innerHTML += `<pre>Matched Itinerary:\n${JSON.stringify(matchedItinerary, null, 2)}</pre>`;
+            
+            // 2. Get itinerary details
+            output.innerHTML += '<h3>2. Fetching Itinerary Details...</h3>';
+            const detailsResponse = await axios.get(
+                `http://localhost/Project-I/backend/getItineraryDetails.php?destination=${encodeURIComponent(destination)}`
+            );
+            output.innerHTML += `<pre>Details:\n${JSON.stringify(detailsResponse.data[0], null, 2)}</pre>`;
+            
+            // 3. Get ship details
+            output.innerHTML += '<h3>3. Fetching Ship Details...</h3>';
+            const targetShipId = matchedItinerary.ship_id;
+            const shipResponse = await axios.get('http://localhost/Project-I/backend/getShipDetails.php');
+            output.innerHTML += `<pre>Total ships: ${shipResponse.data.length}</pre>`;
+            
+            const ship = shipResponse.data.find(s => 
+                String(s.ship_id) === String(targetShipId) || 
+                s.ship_name === matchedItinerary.ship_name
+            );
+            output.innerHTML += `<pre>Matched Ship:\n${JSON.stringify(ship, null, 2)}</pre>`;
+            
+            if (ship && ship.ship_image) {
+                output.innerHTML += `<h3>Ship Image Found: ${ship.ship_image}</h3>`;
+                const imgSrc = `http://localhost/Project-I/backend/${ship.ship_image}`;
+                output.innerHTML += `<p>Full URL: <a href="${imgSrc}" target="_blank">${imgSrc}</a></p>`;
+                imageTest.innerHTML = `<img src="${imgSrc}" style="max-width: 600px; border: 2px solid green;" onload="console.log('IMAGE LOADED')" onerror="console.error('IMAGE FAILED', this.src)">`;
+            }
+            
+            // 4. Get pricing
+            output.innerHTML += '<h3>4. Fetching Pricing...</h3>';
+            const pricingResponse = await axios.get('http://localhost/Project-I/backend/getCabinTypePricing.php');
+            if (pricingResponse.data.success && Array.isArray(pricingResponse.data.pricing)) {
+                const matchedPricing = pricingResponse.data.pricing.find(
+                    p => String(p.ship_id) === String(matchedItinerary.ship_id) && p.route === destination
+                );
+                output.innerHTML += `<pre>Matched Pricing:\n${JSON.stringify(matchedPricing, null, 2)}</pre>`;
+                
+                if (!matchedPricing && matchedItinerary.price) {
+                    const basePrice = Number(matchedItinerary.price);
+                    output.innerHTML += `<p>Using fallback pricing from itinerary price: $${basePrice}</p>`;
+                    const fallbackPricing = {
+                        interior_price: basePrice,
+                        ocean_view_price: Math.round(basePrice * 1.3),
+                        balcony_price: Math.round(basePrice * 1.5),
+                        suite_price: Math.round(basePrice * 2)
+                    };
+                    output.innerHTML += `<pre>Fallback Pricing:\n${JSON.stringify(fallbackPricing, null, 2)}</pre>`;
+                }
+            }
+        }
+        
+        testFlow().catch(err => {
+            output.innerHTML += `<pre style="color: red;">ERROR: ${err.message}\n${err.stack}</pre>`;
+        });
+    </script>
+</body>
+</html>
