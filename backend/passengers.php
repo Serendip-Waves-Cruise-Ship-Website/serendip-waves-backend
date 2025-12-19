@@ -33,17 +33,31 @@ try {
                 }
             } else {
                 $sql = "SELECT * FROM passengers WHERE 1=1";
+                $params = [];
+                $types = "";
                 
                 if (isset($_GET['user_id'])) {
-                    $sql .= " AND user_id = " . intval($_GET['user_id']);
+                    $sql .= " AND user_id = ?";
+                    $params[] = intval($_GET['user_id']);
+                    $types .= "i";
                 } elseif (!$user->hasRole('admin') && !$user->hasRole('staff')) {
                     // Regular users can only see their own passengers
-                    $sql .= " AND user_id = " . $user->getUserId();
+                    $sql .= " AND user_id = ?";
+                    $params[] = $user->getUserId();
+                    $types .= "i";
                 }
                 
                 $sql .= " ORDER BY last_name, first_name";
                 
-                $result = $db->query($sql);
+                if (!empty($params)) {
+                    $stmt = $db->prepare($sql);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                } else {
+                    $result = $db->query($sql);
+                }
+                
                 $passengers = [];
                 while ($row = $result->fetch_assoc()) {
                     $passengers[] = $row;

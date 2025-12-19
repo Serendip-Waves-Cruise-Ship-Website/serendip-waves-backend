@@ -1,8 +1,10 @@
 <?php
 // Database configuration
+// IMPORTANT: Change these values for production use!
+// Use environment variables or a separate config file that is not committed to version control
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', ''); // WARNING: Set a strong password for production!
 define('DB_NAME', 'serendip_waves');
 
 // Session configuration

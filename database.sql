@@ -174,5 +174,7 @@ CREATE TABLE IF NOT EXISTS meal_preferences (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Insert default admin user (password: admin123)
+-- WARNING: Change this password immediately in production!
+-- To generate a new password hash, use: php -r "echo password_hash('your_password', PASSWORD_DEFAULT);"
 INSERT INTO users (username, email, password, role, is_active) VALUES 
 ('admin', 'admin@serendipwaves.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1);

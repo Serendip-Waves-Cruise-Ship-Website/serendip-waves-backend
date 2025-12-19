@@ -35,12 +35,18 @@ try {
             } else {
                 $sql = "SELECT f.*, s.name as ship_name FROM facilities f 
                         LEFT JOIN ships s ON f.ship_id = s.id WHERE 1=1";
+                $params = [];
+                $types = "";
                 
                 if (isset($_GET['ship_id'])) {
-                    $sql .= " AND f.ship_id = " . intval($_GET['ship_id']);
+                    $sql .= " AND f.ship_id = ?";
+                    $params[] = intval($_GET['ship_id']);
+                    $types .= "i";
                 }
                 if (isset($_GET['category'])) {
-                    $sql .= " AND f.category = '" . $db->escape($_GET['category']) . "'";
+                    $sql .= " AND f.category = ?";
+                    $params[] = $_GET['category'];
+                    $types .= "s";
                 }
                 if (isset($_GET['available']) && $_GET['available'] == '1') {
                     $sql .= " AND f.is_available = 1";
@@ -48,7 +54,15 @@ try {
                 
                 $sql .= " ORDER BY f.category, f.name";
                 
-                $result = $db->query($sql);
+                if (!empty($params)) {
+                    $stmt = $db->prepare($sql);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                } else {
+                    $result = $db->query($sql);
+                }
+                
                 $facilities = [];
                 while ($row = $result->fetch_assoc()) {
                     $facilities[] = $row;
@@ -82,7 +96,7 @@ try {
             $is_available = isset($input['is_available']) ? $input['is_available'] : 1;
             $operating_hours = isset($input['operating_hours']) ? $input['operating_hours'] : null;
             
-            $stmt->bind_param("issssls", 
+            $stmt->bind_param("issssss", 
                 $ship_id,
                 $input['name'],
                 $description,

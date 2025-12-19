@@ -33,9 +33,13 @@ try {
                 }
             } else {
                 $sql = "SELECT * FROM meals WHERE 1=1";
+                $params = [];
+                $types = "";
                 
                 if (isset($_GET['category'])) {
-                    $sql .= " AND category = '" . $db->escape($_GET['category']) . "'";
+                    $sql .= " AND category = ?";
+                    $params[] = $_GET['category'];
+                    $types .= "s";
                 }
                 if (isset($_GET['available']) && $_GET['available'] == '1') {
                     $sql .= " AND is_available = 1";
@@ -43,7 +47,15 @@ try {
                 
                 $sql .= " ORDER BY category, name";
                 
-                $result = $db->query($sql);
+                if (!empty($params)) {
+                    $stmt = $db->prepare($sql);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                } else {
+                    $result = $db->query($sql);
+                }
+                
                 $meals = [];
                 while ($row = $result->fetch_assoc()) {
                     $meals[] = $row;
@@ -77,7 +89,7 @@ try {
             $is_available = isset($input['is_available']) ? $input['is_available'] : 1;
             $dietary_info = isset($input['dietary_info']) ? $input['dietary_info'] : null;
             
-            $stmt->bind_param("sssdsls", 
+            $stmt->bind_param("sssdsis", 
                 $input['name'],
                 $description,
                 $input['category'],

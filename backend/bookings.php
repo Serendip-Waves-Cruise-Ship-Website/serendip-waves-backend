@@ -64,21 +64,37 @@ try {
                         LEFT JOIN cabins c ON b.cabin_id = c.id 
                         LEFT JOIN ships s ON c.ship_id = s.id 
                         WHERE 1=1";
+                $params = [];
+                $types = "";
                 
                 if (!$user->hasRole('admin') && !$user->hasRole('staff')) {
                     // Regular users can only see their own bookings
-                    $sql .= " AND b.user_id = " . $user->getUserId();
+                    $sql .= " AND b.user_id = ?";
+                    $params[] = $user->getUserId();
+                    $types .= "i";
                 } elseif (isset($_GET['user_id'])) {
-                    $sql .= " AND b.user_id = " . intval($_GET['user_id']);
+                    $sql .= " AND b.user_id = ?";
+                    $params[] = intval($_GET['user_id']);
+                    $types .= "i";
                 }
                 
                 if (isset($_GET['status'])) {
-                    $sql .= " AND b.status = '" . $db->escape($_GET['status']) . "'";
+                    $sql .= " AND b.status = ?";
+                    $params[] = $_GET['status'];
+                    $types .= "s";
                 }
                 
                 $sql .= " ORDER BY b.created_at DESC";
                 
-                $result = $db->query($sql);
+                if (!empty($params)) {
+                    $stmt = $db->prepare($sql);
+                    $stmt->bind_param($types, ...$params);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                } else {
+                    $result = $db->query($sql);
+                }
+                
                 $bookings = [];
                 while ($row = $result->fetch_assoc()) {
                     $bookings[] = $row;
